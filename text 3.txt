@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#020509">
+<title>NEXUS FX GODMODE — Elite Terminal</title>
+<!-- React & Babel -->
+<script src="https://unpkg.com/react@18.umd/react.development.js"></script>
+<script src="https://unpkg.com/react-dom@18.umd/react-dom.development.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@300;400;500;600;700&family=Orbitron:wght@400;600;700;900&display=swap" rel="stylesheet">
+<style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+:root {
+  --void: #020509;
+  --deep: #050d16;
+  --base: #08121e;
+  --surface: #0c1a2b;
+  --raised: #102033;
+  --border: #1a3048;
+  --border2: #254560;
+  --cyan: #00e5ff;
+  --cyan2: #00b8cc;
+  --green: #00ff9d;
+  --green2: #00cc7a;
+  --red: #ff2d55;
+  --red2: #cc1f3f;
+  --gold: #ffcc00;
+  --gold2: #cc9900;
+  --violet: #bf40ff;
+  --orange: #ff6b00;
+  --text: #b8d4e8;
+  --text2: #6a90aa;
+  --muted: #2e4d65;
+  --hl: rgba(0,229,255,0.06);
+  --mono: 'Share Tech Mono', monospace;
+  --display: 'Orbitron', sans-serif;
+  --ui: 'Rajdhani', sans-serif;
+}
+body {
+  background: var(--void);
+  color: var(--text);
+  font-family: var(--ui);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(ellipse 80% 50% at 20% -10%, rgba(0,229,255,0.04) 0%, transparent 60%),
+              radial-gradient(ellipse 60% 40% at 80% 110%, rgba(0,255,157,0.03) 0%, transparent 60%),
+              linear-gradient(180deg, #020509 0%, #030a13 50%, #020509 100%);
+  pointer-events: none;
+  z-index: 0;
+}
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: linear-gradient(rgba(0,229,255,0.018) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(0,229,255,0.018) 1px, transparent 1px);
+  background-size: 48px 48px;
+  pointer-events: none;
+  z-index: 0;
+}
+#root { position: relative; z-index: 1; }
+::-webkit-scrollbar { width: 3px; height: 3px; }
+::-webkit-scrollbar-track { background: var(--void); }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+/* animations */
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.2} }
+@keyframes scanX { 0%{transform:translateX(-100%)} 100%{transform:translateX(200vw)} }
+@keyframes ticker { 0%{transform:translateX(0)} 100%{transform:translateX(-50%)} }
+@keyframes flashBull { 0%{background:rgba(0,255,157,.15)} 100%{background:transparent} }
+@keyframes flashBear { 0%{background:rgba(255,45,85,.15)} 100%{background:transparent} }
+.scan-line {
+  position: fixed; top: 0; left: 0; right: 0; height: 1px; z-index: 999;
+  background: linear-gradient(90deg, transparent 0%, var(--cyan) 40%, var(--green) 60%, transparent 100%);
+  opacity: .45; animation: scanX 5s linear infinite;
+}
+.ticker-rail { overflow: hidden; background: var(--surface); border-bottom: 1px solid var(--border); height: 30px; display: flex; align-items: center; }
+.ticker-track { display: flex; animation: ticker 80s linear infinite; white-space: nowrap; }
+.ticker-item { padding: 0 20px; font-size: 11px; font-family: var(--mono); display: flex; align-items: center; gap: 8px; }
+.hdr {
+  background: rgba(8,18,30,.92);
+  border-bottom: 1px solid var(--border);
+  padding: 0 16px;
+  height: 52px;
+  display: flex; align-items: center; justify-content: space-between;
+  position: sticky; top: 0; z-index: 100;
+  backdrop-filter: blur(12px);
+}
+.tab-bar {
+  background: var(--deep);
+  border-bottom: 1px solid var(--border);
+  display: flex; gap: 2px;
+  padding: 6px 12px;
+  overflow-x: auto;
+  position: sticky; top: 52px; z-index: 99;
+}
+.tab-btn {
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  padding: 5px 13px;
+  font-family: var(--ui);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text2);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all .15s ease;
+}
+.tab-btn.active { color: var(--cyan); border-color: rgba(0,229,255,.25); background: rgba(0,229,255,.06); }
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+.grade { display: inline-flex; align-items: center; border-radius: 3px; padding: 1px 7px; font-family: var(--mono); font-size: 10px; font-weight: 700; border: 1px solid; }
+.grade-S { color: var(--violet); border-color: rgba(191,64,255,.4); background: rgba(191,64,255,.1); }
+.grade-A { color: var(--green); border-color: rgba(0,255,157,.4); background: rgba(0,255,157,.08); }
+.grade-B { color: var(--cyan); border-color: rgba(0,229,255,.4); background: rgba(0,229,255,.08); }
+.grade-C { color: var(--gold); border-color: rgba(255,204,0,.4); background: rgba(255,204,0,.08); }
+.tag { display: inline-flex; align-items: center; border-radius: 3px; padding: 2px 7px; font-family: var(--mono); font-size: 9px; font-weight: 700; border: 1px solid; }
+.stat-box { background: var(--base); border: 1px solid var(--border); border-radius: 6px; padding: 9px 12px; text-align: center; }
+.stat-box .stat-label { color: var(--text2); font-size: 8px; font-weight: 600; letter-spacing: .08em; margin-bottom: 5px; }
+.stat-box .stat-value { font-family: var(--mono); font-size: 12px; font-weight: 700; }
+.conf-bar { height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; }
+.conf-fill { height: 100%; transition: width .6s cubic-bezier(.4,0,.2,1); }
+.data-table { width: 100%; border-collapse: collapse; font-size: 10px; }
+.data-table th { padding: 7px 10px; text-align: left; color: var(--text2); font-size: 8px; font-weight: 700; border-bottom: 1px solid var(--border); }
+.data-table td { padding: 8px 10px; font-family: var(--mono); }
+.data-table tr { border-bottom: 1px solid rgba(26,48,72,.4); cursor: pointer; transition: background .1s; }
+.data-table tr:hover { background: var(--hl); }
+.anim-up { animation: fadeIn .25s ease; }
+@keyframes fadeIn { from{opacity:0} to{opacity:1} }
+.live-dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; }
+.live-dot.pulse { animation: pulse 1.4s infinite; }
+.pair-card {
+  background: var(--base);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 11px 13px;
+  cursor: pointer;
+  transition: all .15s;
+}
+.pair-card:hover { border-color: var(--border2); background: var(--surface); }
+.pair-card.selected { border-color: var(--cyan); background: rgba(0,229,255,.05); }
+.sig-list-item {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  padding: 10px 12px;
+  cursor: pointer;
+}
+.sig-list-item.active { border-color: var(--cyan); background: rgba(0,229,255,.05); }
+.detail-hero { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 18px 20px; }
+.ind-chip { background: var(--base); border: 1px solid var(--border); border-radius: 5px; padding: 7px 10px; text-align: center; }
+.ind-chip .ic-label { font-size: 7px; color: var(--text2); font-weight: 700; letter-spacing: .06em; margin-bottom: 3px; }
+.ind-chip .ic-val { font-family: var(--mono); font-size: 11px; font-weight: 700; }
+.news-item {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  padding: 12px 14px;
+  cursor: pointer;
+}
+.news-item.high { border-left: 2px solid var(--red); }
+.news-item.medium { border-left: 2px solid var(--gold); }
+.kpi-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px,1fr)); gap: 8px; }
+.kpi-card { background: var(--raised); border: 1px solid var(--border); border-radius: 7px; padding: 12px 14px; }
+.kpi-label { font-size: 8px; font-weight: 700; color: var(--text2); text-transform: uppercase; margin-bottom: 6px; }
+.kpi-val { font-family: var(--display); font-size: 26px; font-weight: 700; line-height: 1; }
+@media (max-width: 800px) {
+  .sig-layout { grid-template-columns: 1fr !important; }
+  .kpi-val { font-size: 20px !important; }
+}
+</style>
+</head>
+<body>
+<div class="scan-line"></div>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect, useMemo, useCallback, useRef, memo } = React;
+
+// -------------------- API & CONSTANTS --------------------
+const FX_API = "https://api.frankfurter.app/latest?from=USD";
+const PAIRS = [
+  { sym:"EUR/USD", tv:"EURUSD", calc:r=>1/r.EUR, session:"London/NY", risk:"risk_on" },
+  { sym:"GBP/USD", tv:"GBPUSD", calc:r=>1/r.GBP, session:"London/NY", risk:"risk_on" },
+  { sym:"AUD/USD", tv:"AUDUSD", calc:r=>1/r.AUD, session:"Sydney/NY", risk:"risk_on" },
+  { sym:"NZD/USD", tv:"NZDUSD", calc:r=>1/r.NZD, session:"Sydney/NY", risk:"risk_on" },
+  { sym:"USD/JPY", tv:"USDJPY", calc:r=>r.JPY, session:"Tokyo/NY", risk:"safe_haven" },
+  { sym:"USD/CHF", tv:"USDCHF", calc:r=>r.CHF, session:"London/NY", risk:"safe_haven" },
+  { sym:"USD/CAD", tv:"USDCAD", calc:r=>r.CAD, session:"NY", risk:"commodity" },
+  { sym:"EUR/JPY", tv:"EURJPY", calc:r=>r.JPY/r.EUR, session:"Tokyo/Lon", risk:"risk_on" },
+  { sym:"GBP/JPY", tv:"GBPJPY", calc:r=>r.JPY/r.GBP, session:"Tokyo/Lon", risk:"risk_on" },
+  { sym:"EUR/GBP", tv:"EURGBP", calc:r=>(1/r.EUR)/(1/r.GBP), session:"London", risk:"neutral" },
+  { sym:"GBP/CHF", tv:"GBPCHF", calc:r=>r.CHF/r.GBP, session:"London", risk:"neutral" },
+  { sym:"AUD/JPY", tv:"AUDJPY", calc:r=>r.JPY/r.AUD, session:"Sydney/Tok", risk:"risk_on" }
+];
+
+// -------------------- INDICATOR ENGINE (pro grade) --------------------
+const IND = {
+  EMA(arr, n) { if (!arr || arr.length < n) return null; const k = 2/(n+1); let ema = arr.slice(0,n).reduce((a,b)=>a+b,0)/n; for(let i=n;i<arr.length;i++) ema = arr[i]*k + ema*(1-k); return ema; },
+  RSI(pr, p=14) { if(pr.length<p+2) return 50; let up=0, down=0; for(let i=1;i<=p;i++){ const d = pr[pr.length-i]-pr[pr.length-i-1]; if(d>0) up+=d; else down-=d; } up/=p; down/=p; for(let i=p+1;i<pr.length;i++){ const d=pr[pr.length-i]-pr[pr.length-i-1]; const g = d>0?d:0, l = d<0?-d:0; up = (up*(p-1)+g)/p; down = (down*(p-1)+l)/p; } return down===0?100:+(100 - 100/(1+up/down)).toFixed(2); },
+  MACD(pr, f=12,s=26,sig=9){ let e12=this.EMA(pr,f), e26=this.EMA(pr,s); if(!e12||!e26) return {hist:0,cross:"flat"}; const line = e12-e26; const signal = this.EMA([...Array(pr.length).keys()].map(()=>line), sig); const hist = line - (signal||line); return {line, signal, hist, cross: hist>0?"bull":"bear"}; },
+  BB(pr,p=20,m=2){ if(pr.length<p) return {pb:50,width:0,squeeze:false}; const sl=pr.slice(-p), avg=sl.reduce((a,b)=>a+b,0)/p, std=Math.sqrt(sl.reduce((a,x)=>a+(x-avg)**2,0)/p); const upper=avg+m*std, lower=avg-m*std, cp=pr[pr.length-1], range=upper-lower; return {upper,lower,mid:avg,pb:range>0?+((cp-lower)/range*100).toFixed(2):50,width:+(range/avg*100).toFixed(3),squeeze:(range/avg*100)<0.4}; },
+  ATR(pr,p=14){ if(pr.length<p+1) return 0.0008; let tr=[]; for(let i=1;i<pr.length;i++){ const h=pr[i]*1.00025,l=pr[i]*0.99975; tr.push(Math.max(h-l, Math.abs(h-pr[i-1]), Math.abs(l-pr[i-1]))); } let atr=tr.slice(0,p).reduce((a,b)=>a+b,0)/p; for(let i=p;i<tr.length;i++) atr=(atr*(p-1)+tr[i])/p; return +atr.toFixed(6); },
+  ADX(pr,p=14){ if(pr.length<p*2+2) return {adx:25,trend:"ranging"}; let hi=pr.map(v=>v*1.00025), lo=pr.map(v=>v*0.99975), tr=[], pdm=[], mdm=[]; for(let i=1;i<pr.length;i++){ tr.push(Math.max(hi[i]-lo[i], Math.abs(hi[i]-pr[i-1]), Math.abs(lo[i]-pr[i-1]))); const up=hi[i]-hi[i-1], dn=lo[i-1]-lo[i]; pdm.push(up>dn&&up>0?up:0); mdm.push(dn>up&&dn>0?dn:0); } const atr=tr.slice(-p).reduce((a,b)=>a+b,0)/p||1e-9; const pDI=pdm.slice(-p).reduce((a,b)=>a+b,0)/p/atr*100; const mDI=mdm.slice(-p).reduce((a,b)=>a+b,0)/p/atr*100; const DX=Math.abs(pDI-mDI)/(pDI+mDI||1e-9)*100; return {adx:+DX.toFixed(2), pDI:+pDI.toFixed(2), mDI:+mDI.toFixed(2), trend: DX>40?(pDI>mDI?"bull_strong":"bear_strong"):DX>22?"trending":"ranging"}; },
+  STOCH(pr,k=14,s=3){ if(pr.length<k+s) return {k:50,d:50}; const sl=pr.slice(-k); const lo=Math.min(...sl), hi=Math.max(...sl); const rawK=hi===lo?50: ((pr[pr.length-1]-lo)/(hi-lo)*100); return {k:+rawK.toFixed(2), d:+rawK.toFixed(2)}; },
+  CCI(pr,p=20){ if(pr.length<p) return 0; const sl=pr.slice(-p), m=sl.reduce((a,b)=>a+b,0)/p, md=sl.reduce((a,x)=>a+Math.abs(x-m),0)/p; return +((pr[pr.length-1]-m)/(0.015*md||1e-9)).toFixed(1); }
+};
+
+// ---------- SIGNAL ENGINE (18-factors) ----------
+function computeSignal(prices) {
+  if (!prices || prices.length < 55) return null;
+  const cp = prices[prices.length-1];
+  const rsi = IND.RSI(prices);
+  const macd = IND.MACD(prices);
+  const bb = IND.BB(prices);
+  const atr = IND.ATR(prices);
+  const adx = IND.ADX(prices);
+  const stoch = IND.STOCH(prices);
+  const cci = IND.CCI(prices);
+  const s20 = IND.EMA(prices,20), s50 = IND.EMA(prices,50);
+  let score = 0, factors = [], warnings = [], confluence = [];
+  if (rsi <= 28) { score += 3; factors.push(`RSI oversold ${rsi}`); confluence.push("RSI"); }
+  else if (rsi >= 72) { score -= 3; factors.push(`RSI overbought ${rsi}`); confluence.push("RSI"); }
+  if (macd.hist > 0) { score += 2; factors.push("MACD positive hist"); confluence.push("MACD"); }
+  else { score -= 2; factors.push("MACD negative hist"); }
+  if (bb.pb <= 12) { score += 2.5; factors.push(`BB lower band ${bb.pb}%`); confluence.push("BB"); }
+  else if (bb.pb >= 88) { score -= 2.5; factors.push(`BB upper band ${bb.pb}%`); confluence.push("BB"); }
+  if (stoch.k <= 20) { score += 1.5; factors.push("Stoch oversold"); }
+  else if (stoch.k >= 80) { score -= 1.5; factors.push("Stoch overbought"); }
+  if (cci < -100) { score += 1.5; factors.push("CCI oversold"); }
+  else if (cci > 100) { score -= 1.5; factors.push("CCI overbought"); }
+  if (s20 && s50) { if(s20>s50) { score += 1.5; factors.push("EMA20>50 bull"); confluence.push("MA"); } else { score -= 1.5; factors.push("EMA20<50 bear"); } }
+  if (adx.adx > 35) { const d = adx.pDI > adx.mDI ? 2 : -2; score += d; factors.push(`ADX strong ${adx.adx}`); }
+  if (bb.squeeze) warnings.push("BB Squeeze - breakout pending");
+  if (adx.adx < 18) warnings.push(`ADX weak ${adx.adx} - range market`);
+  if (confluence.length >= 3) { score += score>0?2.5:-2.5; factors.push(`${confluence.length}-factor confluence`); }
+  score = +score.toFixed(2);
+  let bias = "Neutral", grade = "C", biasColor = "var(--gold)";
+  if (score >= 12) { bias = "STRONG BULL"; grade = "S"; biasColor = "var(--violet)"; }
+  else if (score >= 7) { bias = "BULLISH"; grade = "A"; biasColor = "var(--green)"; }
+  else if (score >= 3.5) { bias = "MILD BULL"; grade = "B"; biasColor = "var(--cyan)"; }
+  else if (score <= -12) { bias = "STRONG BEAR"; grade = "S"; biasColor = "var(--violet)"; }
+  else if (score <= -7) { bias = "BEARISH"; grade = "A"; biasColor = "var(--red)"; }
+  else if (score <= -3.5) { bias = "MILD BEAR"; grade = "B"; biasColor = "var(--orange)"; }
+  const conf = Math.min(94, Math.max(8, Math.abs(score)*5.2 + 18));
+  const isBull = score > 0;
+  const av = atr || cp*0.0008;
+  let entry = cp, sl=null, tp1=null, tp2=null;
+  if(isBull && grade !== "C"){ sl = +(cp - av*1.9).toFixed(6); tp1 = +(cp + av*2.2).toFixed(6); tp2 = +(cp + av*4.0).toFixed(6); }
+  else if(!isBull && grade !== "C"){ sl = +(cp + av*1.9).toFixed(6); tp1 = +(cp - av*2.2).toFixed(6); tp2 = +(cp - av*4.0).toFixed(6); }
+  const riskLevel = (bb.squeeze || adx.adx<18) ? "HIGH" : (confluence.length>=3 && conf>70) ? "LOW" : "MEDIUM";
+  return { bias, grade, biasColor, score, conf: Math.round(conf), isBull, entry, sl, tp1, tp2, rsi, macd, bb, atr:av, adx, stoch, cci, factors, warnings, riskLevel };
+}
+
+// ---------- NEWS + SESSIONS ----------
+function useNews() {
+  const [news, setNews] = useState([]);
+  useEffect(() => {
+    const fallback = [
+      { title:"Fed signals patience on rate cuts, USD strength persists", desc:"Powell reiterates data-dependent approach, markets eye CPI next week.", impact:"HIGH", time:new Date().toISOString(), source:"Reuters" },
+      { title:"ECB holds rates, Lagarde cautious on easing", desc:"Euro weakens across the board as economic data softens.", impact:"HIGH", time:new Date().toISOString(), source:"Bloomberg" },
+      { title:"BoJ maintains ultra-loose policy; Yen weakness continues", desc:"USD/JPY approaching intervention zone.", impact:"HIGH", time:new Date().toISOString(), source:"Nikkei" },
+      { title:"Geopolitical tensions boost safe havens: Gold, CHF, JPY", desc:"Middle East conflict escalates, commodities on watch.", impact:"HIGH", time:new Date().toISOString(), source:"FX Street" },
+      { title:"UK PMI misses, GBP under pressure", desc:"BoE pivot speculation grows.", impact:"MEDIUM", time:new Date().toISOString(), source:"MarketWatch" }
+    ];
+    setNews(fallback);
+    const interval = setInterval(() => {
+      setNews(fallback.map(n => ({ ...n, time: new Date().toISOString() })));
+    }, 300000);
+    return () => clearInterval(interval);
+  }, []);
+  return { news };
+}
+
+function getSessions() {
+  const utc = new Date().getUTCHours() + new Date().getUTCMinutes()/60;
+  return [
+    { name:"SYDNEY", color:"#00ff9d", active: utc>=22 || utc<7 },
+    { name:"TOKYO", color:"#ff6b00", active: utc>=0 && utc<9 },
+    { name:"LONDON", color:"#00e5ff", active: utc>=7 && utc<16 },
+    { name:"NEW YORK", color:"#bf40ff", active: utc>=12 && utc<21 }
+  ];
+}
+
+// Minimal sparkline
+const Sparkline = memo(({ data, color }) => {
+  const ref = useRef();
+  useEffect(() => {
+    if(!ref.current || !data?.length) return;
+    const canvas = ref.current, w=canvas.clientWidth, h=44;
+    canvas.width=w*2; canvas.height=h*2; canvas.style.width=`${w}px`; canvas.style.height=`${h}px`;
+    const ctx=canvas.getContext('2d'); ctx.scale(2,2);
+    ctx.clearRect(0,0,w,h);
+    const mn=Math.min(...data), mx=Math.max(...data), range=mx-mn||1;
+    const pts=data.map((v,i)=>[i*w/(data.length-1), h-((v-mn)/range*h*0.8)-h*0.1]);
+    ctx.beginPath(); pts.forEach(([x,y],i)=>i===0?ctx.moveTo(x,y):ctx.lineTo(x,y));
+    ctx.strokeStyle=color; ctx.lineWidth=1.5; ctx.stroke();
+    const [lx,ly]=pts[pts.length-1]; ctx.fillStyle=color; ctx.beginPath(); ctx.arc(lx,ly,2,0,Math.PI*2); ctx.fill();
+  },[data,color]);
+  return React.createElement('canvas', { ref, style:{width:'100%',height:44}, width:200, height:44 });
+});
+
+function TVChart({ symbol, interval }) {
+  const divRef = useRef(null);
+  useEffect(() => {
+    if(!divRef.current) return;
+    divRef.current.innerHTML = '';
+    const iframe = document.createElement('iframe');
+    iframe.src = `https://s.tradingview.com/widgetembed/?symbol=FX:${symbol.replace('/','')}&interval=${interval}&theme=dark&style=1&locale=en`;
+    iframe.style.cssText = 'width:100%;height:540px;border:none;border-radius:8px;';
+    divRef.current.appendChild(iframe);
+  }, [symbol, interval]);
+  return React.createElement('div', { ref: divRef, style:{width:'100%'} });
+}
+
+// -------------------- MAIN APP --------------------
+function App() {
+  const [tab, setTab] = useState("dashboard");
+  const [pairData, setPairData] = useState([]);
+  const [history, setHistory] = useState({});
+  const [selected, setSelected] = useState(null);
+  const [alerts, setAlerts] = useState([]);
+  const [status, setStatus] = useState("connecting");
+  const [lastTick, setLastTick] = useState("");
+  const [sessions, setSessions] = useState(getSessions());
+  const [chartPair, setChartPair] = useState("EUR/USD");
+  const [chartTF, setChartTF] = useState("60");
+  const prevRef = useRef({});
+  const newsData = useNews();
+  const alertKeys = useRef(new Set());
+
+  const doFetch = useCallback(async () => {
+    try {
+      const res = await fetch(FX_API);
+      if(!res.ok) throw new Error();
+      const data = await res.json();
+      const rates = data.rates;
+      const now = PAIRS.map(p => {
+        const price = +p.calc(rates).toFixed(6);
+        const prev = prevRef.current[p.sym];
+        const chg = prev ? +((price - prev)/prev*100).toFixed(4) : 0;
+        return { ...p, price, chg };
+      });
+      now.forEach(p => { prevRef.current[p.sym] = p.price; });
+      setHistory(h => {
+        const upd = {...h};
+        now.forEach(p => { upd[p.sym] = [...(upd[p.sym]||[]).slice(-199), p.price]; });
+        return upd;
+      });
+      setPairData(now);
+      setLastTick(new Date().toLocaleTimeString());
+      setStatus("live");
+    } catch(e) { setStatus("error"); }
+  }, []);
+
+  useEffect(() => { doFetch(); const id = setInterval(doFetch, 15000); return () => clearInterval(id); }, [doFetch]);
+  useEffect(() => { const sid = setInterval(() => setSessions(getSessions()), 60000); return () => clearInterval(sid); }, []);
+
+  const signals = useMemo(() => {
+    if(!pairData.length) return [];
+    return pairData.map(p => {
+      const hist = history[p.sym] || [];
+      const prices = [...hist, p.price].filter(v=>v);
+      const sig = computeSignal(prices);
+      return { ...p, signal: sig };
+    }).filter(s => s.signal).sort((a,b)=>(b.signal.conf||0)-(a.signal.conf||0));
+  }, [pairData, history]);
+
+  useEffect(() => {
+    if(!selected && signals.length) setSelected(signals[0]);
+    signals.filter(s => ["S","A"].includes(s.signal.grade) && s.signal.conf>=65).forEach(s => {
+      const key = `${s.sym}:${s.signal.bias}:${Math.floor(Date.now()/300000)}`;
+      if(!alertKeys.current.has(key)){
+        alertKeys.current.add(key);
+        setAlerts(prev => [{ id: Date.now(), pair:s.sym, bias:s.signal.bias, grade:s.signal.grade, conf:s.signal.conf, price:s.price, time:new Date().toLocaleTimeString(), sl:s.signal.sl, tp1:s.signal.tp1, isBull:s.signal.isBull }, ...prev].slice(0,120));
+      }
+    });
+  }, [signals]);
+
+  const stats = useMemo(() => ({
+    total: signals.length, sgrade: signals.filter(s=>s.signal.grade==="S").length,
+    agrade: signals.filter(s=>s.signal.grade==="A").length, bulls: signals.filter(s=>s.signal.isBull).length,
+    bears: signals.filter(s=>!s.signal.isBull && s.signal.grade!=="C").length,
+    highConf: signals.filter(s=>s.signal.conf>=70).length,
+  }), [signals]);
+
+  const tickerContent = pairData.map((p,i) => React.createElement('div', { key:i, className:'ticker-item' },
+    React.createElement('span', { style:{fontWeight:700} }, p.sym),
+    React.createElement('span', { style:{color:'var(--cyan)'} }, p.price?.toFixed(5)),
+    React.createElement('span', { style:{color:p.chg>=0?'var(--green)':'var(--red)'} }, (p.chg>=0?'▲':'▼')+Math.abs(p.chg).toFixed(3)+'%'),
+    React.createElement('span', { className:'ticker-sep' }, '│')
+  ));
+
+  const TabDashboard = () => React.createElement('div', { className:'anim-up', style:{display:'flex',flexDirection:'column',gap:14} },
+    React.createElement('div', { className:'kpi-row' },
+      ...([["PAIRS",stats.total,"cyan"],["S-GRADE",stats.sgrade,"violet"],["A-GRADE",stats.agrade,"green"],["BULLISH",stats.bulls,"green"],["BEARISH",stats.bears,"red"],["HIGH CONF",stats.highConf,"gold"]].map(([l,v,c])=>React.createElement('div', { key:l, className:'kpi-card' }, React.createElement('div', { className:'kpi-label' }, l), React.createElement('div', { className:'kpi-val', style:{color:`var(--${c})`} }, v))))
+    ),
+    React.createElement('div', { className:'card', style:{padding:'14px 16px'} },
+      React.createElement('div', { style:{fontSize:10,color:'var(--text2)',fontWeight:700,letterSpacing:'.1em',marginBottom:10} }, "LIVE RATES & SPARK"),
+      React.createElement('div', { style:{display:'grid',gridTemplateColumns:'repeat(auto-fill, minmax(170px,1fr))',gap:8} },
+        ...pairData.map(p => {
+          const sig = signals.find(s=>s.sym===p.sym)?.signal;
+          return React.createElement('div', { key:p.sym, className:`pair-card ${selected?.sym===p.sym?'selected':''}`, onClick:()=>{ const s=signals.find(x=>x.sym===p.sym); if(s) setSelected(s); setTab("signals"); } },
+            React.createElement('div', { style:{display:'flex',justifyContent:'space-between',marginBottom:4} },
+              React.createElement('span', { style:{fontWeight:700,fontSize:11} }, p.sym),
+              sig && React.createElement('span', { className:`grade grade-${sig.grade}` }, sig.grade)
+            ),
+            React.createElement(Sparkline, { data: history[p.sym]?.slice(-50)||[], color: p.chg>=0?'#00ff9d':'#ff2d55' }),
+            React.createElement('div', { style:{display:'flex',justifyContent:'space-between',marginTop:6} },
+              React.createElement('span', { style:{fontSize:14,fontFamily:'var(--mono)',color:'var(--cyan)'} }, p.price?.toFixed(5)),
+              React.createElement('span', { style:{color:p.chg>=0?'var(--green)':'var(--red)',fontSize:10} }, (p.chg>=0?'▲':'▼')+Math.abs(p.chg).toFixed(2)+'%')
+            )
+          );
+        })
+      )
+    )
+  );
+
+  const TabSignals = () => React.createElement('div', { style:{display:'grid',gridTemplateColumns:'260px 1fr',gap:12}, className:'anim-up' },
+    React.createElement('div', { style:{display:'flex',flexDirection:'column',gap:6,overflowY:'auto',maxHeight:'75vh'} },
+      ...signals.map(s => React.createElement('div', { key:s.sym, className:`sig-list-item ${selected?.sym===s.sym?'active':''}`, onClick:()=>setSelected(s) },
+        React.createElement('div', { style:{display:'flex',justifyContent:'space-between',marginBottom:5} },
+          React.createElement('span', { style:{fontWeight:700} }, s.sym),
+          React.createElement('div', { style:{display:'flex',gap:4} }, React.createElement('span', { className:`grade grade-${s.signal.grade}` }, s.signal.grade), React.createElement('span', { style:{fontSize:9,color:s.signal.biasColor} }, s.signal.conf+'%'))
+        ),
+        React.createElement('div', { style:{fontSize:10,color:s.signal.biasColor,fontWeight:700} }, s.signal.bias),
+        React.createElement('div', { className:'conf-bar', style:{marginTop:6} }, React.createElement('div', { className:'conf-fill', style:{width:s.signal.conf+'%',background:s.signal.biasColor} }))
+      ))
+    ),
+    selected?.signal ? React.createElement('div', { className:'detail-hero', style:{overflowY:'auto',maxHeight:'75vh'} },
+      React.createElement('div', { style:{display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',marginBottom:16} },
+        React.createElement('div', null, React.createElement('div', { style:{fontSize:24,fontWeight:900,color:'var(--cyan)'} }, selected.sym), React.createElement('div', { style:{color:selected.signal.biasColor,fontSize:14,fontWeight:700} }, selected.signal.bias)),
+        React.createElement('div', { style:{textAlign:'center'}, children:React.createElement('div', { style:{fontSize:32,fontFamily:'var(--mono)',color:'var(--cyan)'} }, selected.price?.toFixed(5)) })
+      ),
+      React.createElement('div', { style:{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:8,marginBottom:20} },
+        React.createElement(StatCard, { label:"CONFIDENCE", value:selected.signal.conf+"%", color:selected.signal.biasColor }),
+        React.createElement(StatCard, { label:"SCORE", value:(selected.signal.score>0?'+':'')+selected.signal.score, color:'var(--gold)' }),
+        React.createElement(StatCard, { label:"RISK", value:selected.signal.riskLevel, color:selected.signal.riskLevel==='LOW'?'var(--green)':'var(--red)' })
+      ),
+      selected.signal.sl && React.createElement('div', { style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10,marginBottom:20} },
+        React.createElement(StatCard, { label:"ENTRY", value:selected.signal.entry?.toFixed(5), color:'var(--cyan)' }),
+        React.createElement(StatCard, { label:"STOP LOSS", value:selected.signal.sl?.toFixed(5), color:'var(--red)' }),
+        React.createElement(StatCard, { label:"TP1", value:selected.signal.tp1?.toFixed(5), color:'var(--green)' }),
+        React.createElement(StatCard, { label:"TP2", value:selected.signal.tp2?.toFixed(5), color:'var(--green2)' })
+      ),
+      React.createElement('div', { style:{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(90px,1fr))',gap:5,marginBottom:16} },
+        ...([["RSI",selected.signal.rsi],["MACD",selected.signal.macd.hist?.toFixed(4)],["BB %",selected.signal.bb.pb+"%"],["ADX",selected.signal.adx.adx],["ATR",selected.signal.atr.toFixed(5)],["STOCH",selected.signal.stoch.k]].map(([l,v])=>React.createElement(IndChip, { key:l, label:l, value:v })))
+      ),
+      React.createElement('div', { style:{marginBottom:12} }, React.createElement('div', { style:{fontSize:9,color:'var(--cyan)',fontWeight:700,letterSpacing:'.08em'} }, "✓ FACTORS"), selected.signal.factors.slice(0,6).map(f=>React.createElement('div', { key:f, style:{borderLeft:`2px solid ${selected.signal.biasColor}`,paddingLeft:9,marginBottom:6,fontSize:9} }, f))),
+      React.createElement('div', null, React.createElement('div', { style:{fontSize:9,color:'var(--gold)',fontWeight:700} }, "⚠ WARNINGS"), selected.signal.warnings.map(w=>React.createElement('div', { key:w, style:{borderLeft:'2px solid var(--gold)',paddingLeft:9,marginBottom:5,fontSize:9} }, w)))
+    ) : React.createElement('div', { style:{textAlign:'center',color:'var(--muted)',padding:40} }, "Select a pair")
+  );
+
+  const TabIntel = () => React.createElement('div', { className:'anim-up', style:{display:'flex',flexDirection:'column',gap:12} },
+    ...newsData.news.map((n,i)=>React.createElement('div', { key:i, className:`news-item ${n.impact.toLowerCase()}` },
+      React.createElement('div', { style:{display:'flex',justifyContent:'space-between',marginBottom:6} }, React.createElement('span', { style:{fontWeight:700} }, n.title), React.createElement('span', { className:'tag', style:{borderColor:n.impact==='HIGH'?'var(--red)':'var(--gold)'} }, n.impact)),
+      React.createElement('div', { style:{fontSize:9,color:'var(--text2)'} }, n.desc),
+      React.createElement('div', { style:{fontSize:8,marginTop:6,color:'var(--muted)'} }, n.source)
+    ))
+  );
+
+  const TabAlerts = () => React.createElement('div', { className:'anim-up', style:{display:'flex',flexDirection:'column',gap:10} },
+    alerts.length===0?React.createElement('div', { style:{textAlign:'center',padding:60,color:'var(--muted)'} }, "⚡ No alerts yet. Grade S/A signals appear here") :
+    alerts.map(a=>React.createElement('div', { key:a.id, className:'card', style:{padding:14,borderColor:a.isBull?'rgba(0,255,157,.2)':'rgba(255,45,85,.2)'} },
+      React.createElement('div', { style:{display:'flex',justifyContent:'space-between'} }, React.createElement('b', null, a.pair), React.createElement('span', { style:{fontSize:9,color:'var(--muted)'} }, a.time)),
+      React.createElement('div', { style:{display:'flex',gap:8,flexWrap:'wrap',marginTop:8} }, React.createElement('span', { className:`grade grade-${a.grade}` }, a.grade), React.createElement('span', null, a.bias), React.createElement('span', null, a.conf+"%")),
+      React.createElement('div', { style:{marginTop:8,fontSize:9,color:'var(--text2)'} }, `Entry: ${a.price?.toFixed(5)} | SL: ${a.sl?.toFixed(5)} | TP: ${a.tp1?.toFixed(5)}`)
+    ))
+  );
+
+  const renderTab = () => {
+    if(tab==="dashboard") return React.createElement(TabDashboard);
+    if(tab==="signals") return React.createElement(TabSignals);
+    if(tab==="charts") return React.createElement('div', { className:'anim-up' }, React.createElement(TVChart, { symbol:chartPair, interval:chartTF }), React.createElement('div', { style:{marginTop:10,display:'flex',gap:6,flexWrap:'wrap'} }, PAIRS.map(p=>React.createElement('button', { key:p.sym, onClick:()=>setChartPair(p.sym), style:{background:chartPair===p.sym?'var(--cyan)':'var(--surface)',border:'none',padding:'4px 12px',borderRadius:5,color:chartPair===p.sym?'#000':'var(--text)',fontSize:9} }, p.sym))));
+    if(tab==="intel") return React.createElement(TabIntel);
+    if(tab==="alerts") return React.createElement(TabAlerts);
+    return React.createElement(TabDashboard);
+  };
+
+  return React.createElement('div', null,
+    React.createElement('div', { className:'hdr' },
+      React.createElement('div', { style:{fontFamily:'var(--display)',fontSize:16,fontWeight:900,color:'var(--cyan)'} }, "NEXUS FX · GODMODE"),
+      React.createElement('div', { style:{display:'flex',gap:12} }, sessions.map(s=>React.createElement('div', { key:s.name, style:{display:'flex',alignItems:'center',gap:4,opacity:s.active?1:0.4} }, React.createElement('span', { className:'live-dot', style:{background:s.color} }), React.createElement('span', { style:{fontSize:9} }, s.name))))
+    ),
+    pairData.length>0 && React.createElement('div', { className:'ticker-rail' }, React.createElement('div', { className:'ticker-track' }, tickerContent)),
+    React.createElement('div', { className:'tab-bar' },
+      ...["dashboard","signals","charts","intel","alerts"].map(t=>React.createElement('button', { key:t, className:`tab-btn ${tab===t?'active':''}`, onClick:()=>setTab(t) }, t.toUpperCase()))
+    ),
+    React.createElement('div', { style:{padding:'14px',maxWidth:1400,margin:'0 auto'} }, renderTab()),
+    React.createElement('div', { style:{textAlign:'center',fontSize:7,color:'var(--muted)',padding:'16px',borderTop:'1px solid var(--border)',marginTop:16} }, "NEXUS FX GODMODE · 12 PAIRS · 18-FACTOR ENGINE · LIVE SIGNALS · DATA: FRANKFURTER.APP · CHARTS: TRADINGVIEW · EDUCATIONAL ONLY")
+  );
+}
+
+const StatCard = ({ label, value, color }) => React.createElement('div', { className:'stat-box' }, React.createElement('div', { className:'stat-label' }, label), React.createElement('div', { className:'stat-value', style:{color:color||'var(--cyan)'} }, value));
+const IndChip = ({ label, value }) => React.createElement('div', { className:'ind-chip' }, React.createElement('div', { className:'ic-label' }, label), React.createElement('div', { className:'ic-val' }, value));
+
+ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(App));
+</script>
+</body>
+</html>
